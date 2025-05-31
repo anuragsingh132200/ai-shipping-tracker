@@ -149,7 +149,7 @@ class CargoTracker:
             'reference_id': ref_id,
             'vessel': {'name': 'N/A', 'number': 'N/A'},
             'ports': {'loading': 'N/A', 'discharge': 'N/A'},
-            'schedule': {'eta': 'N/A', 'status': 'N/A'},
+            'schedule': {'eta': 'N/A', 'status': 'N/A', 'last_update': 'N/A'},
             'timestamp': datetime.now().isoformat()
         }
         
@@ -157,43 +157,106 @@ class CargoTracker:
             return parsed
             
         try:
-            # Handle string input
+            # Handle string input that might contain JSON
             if isinstance(raw_data, str):
-                # Try to find JSON in the string
-                json_match = re.search(r'\{.*\}', raw_data, re.DOTALL)
-                if json_match:
-                    raw_data = json.loads(json_match.group())
+                # First try to extract JSON from the string
+                try:
+                    # Look for JSON in the response
+                    json_match = re.search(r'\{(?:[^{}]|\{.*?\})*\}', raw_data, re.DOTALL)
+                    if json_match:
+                        raw_data = json.loads(json_match.group())
+                        if not isinstance(raw_data, dict):
+                            return self._extract_from_text(raw_data, parsed)
+                except (json.JSONDecodeError, AttributeError):
+                    # If JSON parsing fails, try to extract info directly from the text
+                    return self._extract_from_text(raw_data, parsed)
                 else:
-                    return parsed
+                    return self._extract_from_text(raw_data, parsed)
             
             # Handle dictionary input
             if isinstance(raw_data, dict):
                 # Extract vessel info
                 if 'vessel' in raw_data and isinstance(raw_data['vessel'], dict):
-                    parsed['vessel'].update({
-                        'name': raw_data['vessel'].get('name', 'N/A'),
-                        'number': raw_data['vessel'].get('number', 'N/A')
-                    })
+                    vessel = raw_data['vessel']
+                    parsed['vessel'] = {
+                        'name': vessel.get('name', 'N/A'),
+                        'number': vessel.get('number', 'N/A')
+                    }
                 
                 # Extract port info
                 if 'ports' in raw_data and isinstance(raw_data['ports'], dict):
-                    parsed['ports'].update({
-                        'loading': raw_data['ports'].get('loading', 'N/A'),
-                        'discharge': raw_data['ports'].get('discharge', 'N/A')
-                    })
+                    ports = raw_data['ports']
+                    parsed['ports'] = {
+                        'loading': ports.get('loading', 'N/A'),
+                        'discharge': ports.get('discharge', 'N/A')
+                    }
                 
                 # Extract schedule info
+                schedule = {}
                 if 'schedule' in raw_data and isinstance(raw_data['schedule'], dict):
-                    parsed['schedule'].update({
-                        'eta': raw_data['schedule'].get('eta', 'N/A'),
-                        'status': raw_data['schedule'].get('status', 'N/A')
-                    })
+                    schedule = raw_data['schedule']
+                
+                # Get ETA from various possible fields
+                eta = schedule.get('eta') or raw_data.get('eta') or raw_data.get('arrival_date')
+                status = schedule.get('status') or raw_data.get('status') or raw_data.get('current_status')
+                last_update = schedule.get('last_update') or raw_data.get('last_update') or raw_data.get('current_location_date_time')
+                
+                parsed['schedule'] = {
+                    'eta': eta or 'N/A',
+                    'status': status or 'N/A',
+                    'last_update': last_update or 'N/A'
+                }
+                
+                # If we have current location info
+                if 'current_location' in raw_data:
+                    parsed['current_location'] = raw_data['current_location']
+                
+                # Update timestamp
+                parsed['timestamp'] = datetime.now().isoformat()
             
             return parsed
             
         except Exception as e:
             print(f"Error parsing tracking data: {e}")
+            # Try to extract any available info from the raw data as text
+            if isinstance(raw_data, str):
+                return self._extract_from_text(raw_data, parsed)
             return parsed
+    
+    def _extract_from_text(self, text: str, default_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract tracking information from raw text response."""
+        result = default_data.copy()
+        
+        # Try to extract vessel info
+        vessel_match = re.search(r'vessel[\s:]+([^\n]+)', text, re.IGNORECASE)
+        if vessel_match:
+            result['vessel']['name'] = vessel_match.group(1).strip()
+        
+        # Try to extract voyage number
+        voyage_match = re.search(r'voyage[\s:]+([A-Z0-9]+)', text, re.IGNORECASE)
+        if voyage_match:
+            result['vessel']['number'] = voyage_match.group(1).strip()
+        
+        # Try to extract ports
+        pol_match = re.search(r'port of loading[\s:]+([^\n]+)', text, re.IGNORECASE)
+        if pol_match:
+            result['ports']['loading'] = pol_match.group(1).strip()
+            
+        pod_match = re.search(r'port of discharge[\s:]+([^\n]+)', text, re.IGNORECASE)
+        if pod_match:
+            result['ports']['discharge'] = pod_match.group(1).strip()
+        
+        # Try to extract ETA
+        eta_match = re.search(r'eta[:\s]+([^\n]+)', text, re.IGNORECASE)
+        if eta_match:
+            result['schedule']['eta'] = eta_match.group(1).strip()
+            
+        # Try to extract status
+        status_match = re.search(r'status[:\s]+([^\n]+)', text, re.IGNORECASE)
+        if status_match:
+            result['schedule']['status'] = status_match.group(1).strip()
+        
+        return result
     
     def _generate_route_map(self, origin: str, destination: str) -> Optional[str]:
         """Generate an interactive map showing the shipping route."""

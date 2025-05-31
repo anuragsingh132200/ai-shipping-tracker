@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "reference_id": "SINI25432400",
+    "vessel": {
+      "name": "N/A",
+      "number": "N/A"
+    },
+    "ports": {
+      "loading": "N/A",
+      "discharge": "N/A"
+    },
+    "schedule": {
+      "eta": "N/A",
+      "status": "N/A",
+      "last_update": "N/A"
+    },
+    "timestamp": "2025-06-01T00:48:17.508014"
+  }
+]
