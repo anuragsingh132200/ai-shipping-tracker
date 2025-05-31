@@ -1,5 +1,5 @@
 # AI-based Shipping Line Tracker
-[Watch the demo video](./Screenity video - May 31, 2025.mp4)
+[Watch the demo video](./video.mp4)
 
 An automated shipping container tracking system that uses AI to fetch voyage details from HMM's cargo tracking service.
 
