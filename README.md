@@ -1,4 +1,5 @@
 # Cargo Tracking System
+[Watch the demo video](./video.mp4)
 
 An intelligent cargo tracking system that automates the process of tracking shipping containers using HMM's tracking system. The system uses browser automation to fetch real-time tracking information and generates interactive route maps.
 
