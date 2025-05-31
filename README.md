@@ -1,90 +1,135 @@
-# AI-based Shipping Line Tracker
+# Cargo Tracking System
 
-An automated shipping container tracking system that uses AI to fetch voyage details from HMM's cargo tracking service.
+An intelligent cargo tracking system that automates the process of tracking shipping containers using HMM's tracking system. The system uses browser automation to fetch real-time tracking information and generates interactive route maps.
 
-## Features
+## 🌟 Features
 
-- Automated tracking of HMM shipping containers
-- Extracts voyage numbers and arrival dates
-- Caches results to prevent duplicate requests
-- Uses browser automation with AI assistance
+- **Automated Tracking**: Fetches real-time cargo tracking information
+- **Interactive Maps**: Generates visual route maps between ports
+- **Multiple Identifiers**: Works with booking references, container numbers, or B/L numbers
+- **Headless Mode**: Option to run without a browser UI for server use
+- **History Tracking**: Maintains a history of all tracked shipments
+- **Simple CLI**: Easy-to-use command-line interface
 
-## Prerequisites
+## 🚀 Getting Started
 
-- Python 3.8 or higher
-- Chrome browser installed
-- OpenAI API key
+### Prerequisites
 
-## Setup Instructions
+- Python 3.8+
+- Google Chrome browser installed
+- Google API key with access to Google Maps and Gemini
 
-1. Clone the repository:
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/cargo-tracker.git
+   cd cargo-tracker
+   ```
+
+2. **Set up a virtual environment** (recommended):
+   ```bash
+   python -m venv venv
+   .\venv\Scripts\activate  # On Windows
+   # or
+   source venv/bin/activate  # On macOS/Linux
+   ```
+
+3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Install Playwright browser**:
+   ```bash
+   playwright install
+   ```
+
+5. **Create a `.env` file** in the project root with your API key:
+   ```
+   GOOGLE_API_KEY=your_google_api_key_here
+   ```
+
+## 🛠 Usage
+
+### Basic Tracking
+
 ```bash
-git clone https://github.com/anuragsingh132200/ai-shipping-tracker.git
-cd ai-shipping-tracker
+python cargo_tracker.py YOUR_REFERENCE_ID
 ```
 
-2. Create and activate a virtual environment:
+### Headless Mode (no browser UI)
+
 ```bash
-python -m venv venv
-.\venv\Scripts\activate  # On Windows
-source venv/bin/activate  # On Unix/MacOS
+python cargo_tracker.py YOUR_REFERENCE_ID --headless
 ```
 
-3. Install dependencies:
+### Example
+
 ```bash
-pip install -r requirements.txt
+python cargo_tracker.py HMMU1234567 --headless
 ```
 
-4. Create a `.env` file and add your OpenAI API key:
+### Where to Find Your Reference ID
+
+You can use any of these as your reference ID:
+- Booking number (e.g., `HMMU1234567`)
+- Bill of Lading (B/L) number
+- Container number (e.g., `HMCU1234567`)
+
+These can typically be found in your shipping documents, booking confirmation emails, or invoices.
+
+## 📂 Project Structure
+
 ```
-OPENAI_API_KEY=your_api_key_here
-```
-
-## Usage
-
-Run the tracker with:
-```bash
-python tracker.py
-```
-
-The script will:
-1. Check if results for the booking ID already exist
-2. If not, navigate to the HMM tracking website
-3. Enter the booking ID and extract voyage details
-4. Save results to `results.json`
-
-## Output Format
-
-Results are stored in `results.json` in the following format:
-```json
-{
-  "booking_id": "SINI25432400",
-  "result": {
-    "voyage_number": "YM MANDATE 0096W",
-    "arrival_date": "2025-03-28 10:38"
-  }
-}
+cargo-tracker/
+├── .env                    # Environment variables
+├── cargo_tracker.py        # Main application code
+├── requirements.txt        # Python dependencies
+└── tracking_results/      # Directory for tracking history and maps
+    ├── tracking_history.json  # JSON log of all tracked shipments
+    └── route_*.html          # Interactive route maps
 ```
 
-## Project Structure
+## 🔧 Configuration
 
-- `tracker.py`: Main script that handles the tracking logic
-- `requirements.txt`: Project dependencies
-- `.env`: Environment variables configuration
-- `results.json`: Cache file for tracking results
-- `.gitignore`: Git ignore configuration
+### Environment Variables
 
-## Dependencies
+Create a `.env` file in the project root with the following variables:
 
-- browser-use: For AI-powered browser automation
-- langchain-openai: For OpenAI integration
-- python-dotenv: For environment variable management
-- pydantic: For data validation
+```
+GOOGLE_API_KEY=your_google_api_key_here
+```
 
-## License
+### Command Line Arguments
 
-MIT License
+- `reference_id`: The booking reference, container number, or B/L number to track
+- `--headless`: (Optional) Run in headless mode (no browser UI)
 
-## Contributing
+## 📝 Output
 
-Feel free to open issues and pull requests for any improvements.
+For each tracking request, the system will:
+1. Display tracking information in the console
+2. Save the tracking data to `tracking_results/tracking_history.json`
+3. Generate an interactive map in `tracking_results/` if port information is available
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Uses [Playwright](https://playwright.dev/) for browser automation
+- [Google Maps API](https://developers.google.com/maps) for geocoding and mapping
+- [Folium](https://python-visualization.github.io/folium/) for interactive maps
+- [LangChain](https://python.langchain.com/) for LLM integration
